@@ -333,7 +333,7 @@ void Visuals::hitEffect(GameEvent* event) noexcept
 
 void Visuals::hitMarker(GameEvent* event) noexcept
 {
-    if (config->visuals.hitMarker == 0 || !localPlayer)
+    if (config->visuals.hitMarker.enabled == 0 || !localPlayer)
         return;
 
     static float lastHitTime = 0.0f;
@@ -346,19 +346,33 @@ void Visuals::hitMarker(GameEvent* event) noexcept
     if (lastHitTime + config->visuals.hitMarkerTime < memory->globalVars->realtime)
         return;
 
-    switch (config->visuals.hitMarker) {
-    case 1:
+    if (config->visuals.hitMarker.enabled) {
+        if (config->visuals.hitMarkerAlpha == 0)
+            return;
         const auto [width, height] = interfaces->surface->getScreenSize();
 
         const auto width_mid = width / 2;
         const auto height_mid = height / 2;
 
-        interfaces->surface->setDrawColor(255, 255, 255, 255);
-        interfaces->surface->drawLine(width_mid + 10, height_mid + 10, width_mid + 4, height_mid + 4);
-        interfaces->surface->drawLine(width_mid - 10, height_mid + 10, width_mid - 4, height_mid + 4);
-        interfaces->surface->drawLine(width_mid + 10, height_mid - 10, width_mid + 4, height_mid - 4);
-        interfaces->surface->drawLine(width_mid - 10, height_mid - 10, width_mid - 4, height_mid - 4);
-        break;
+        int drawAlpha = config->visuals.hitMarkerAlpha;
+
+        if (config->visuals.hitMarkerFade != 0) {
+            // TimeAfterHit = memory->globalVars->realtime - lastHitTime
+            if (std::fmod(memory->globalVars->realtime - lastHitTime, config->visuals.hitMarkerFade) == 0) {
+                // FadeLevel = config->visuals.hitMarkerTime / config->visuals.hitMarkerFadeSpeed
+                // FadeCount = memory->globalVars->realtime - lastHitTime / config->visuals.hitMarkerFadeSpeed
+                // OneFadeAlpha = 255 / FadeLevel
+                drawAlpha = 255 - ((255 / (config->visuals.hitMarkerTime / config->visuals.hitMarkerFade)) * (memory->globalVars->realtime - lastHitTime / config->visuals.hitMarkerFade));
+            }
+        }
+
+        interfaces->surface->setDrawColor(config->visuals.hitMarker.color, drawAlpha);
+
+        interfaces->surface->setDrawColor(config->visuals.hitMarker.color, config->visuals.hitMarkerAlpha);
+        interfaces->surface->drawLine(width_mid + (config->visuals.hitMarkerGap + config->visuals.hitMarkerLength), height_mid + (config->visuals.hitMarkerGap + config->visuals.hitMarkerLength), width_mid + config->visuals.hitMarkerGap, height_mid + config->visuals.hitMarkerGap);
+        interfaces->surface->drawLine(width_mid - (config->visuals.hitMarkerGap + config->visuals.hitMarkerLength), height_mid + (config->visuals.hitMarkerGap + config->visuals.hitMarkerLength), width_mid - config->visuals.hitMarkerGap, height_mid + config->visuals.hitMarkerGap);
+        interfaces->surface->drawLine(width_mid + (config->visuals.hitMarkerGap + config->visuals.hitMarkerLength), height_mid - (config->visuals.hitMarkerGap + config->visuals.hitMarkerLength), width_mid + config->visuals.hitMarkerGap, height_mid - config->visuals.hitMarkerGap);
+        interfaces->surface->drawLine(width_mid - (config->visuals.hitMarkerGap + config->visuals.hitMarkerLength), height_mid - (config->visuals.hitMarkerGap + config->visuals.hitMarkerLength), width_mid - config->visuals.hitMarkerGap, height_mid - config->visuals.hitMarkerGap);
     }
 }
 

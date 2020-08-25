@@ -163,8 +163,12 @@ public:
         int screenEffect{ 0 };
         int hitEffect{ 0 };
         float hitEffectTime{ 0.6f };
-        int hitMarker{ 0 };
+        ColorToggle hitMarker;
         float hitMarkerTime{ 0.6f };
+        int hitMarkerLength{ 6 };
+        int hitMarkerGap{ 4 };
+        int hitMarkerAlpha{ 255 };
+        float hitMarkerFade{ 0.0f };
         int playerModelT{ 0 };
         int playerModelCT{ 0 };
 
